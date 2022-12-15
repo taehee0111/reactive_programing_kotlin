@@ -26,6 +26,9 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    viewBinding {
+        enabled = true
+    }
     namespace 'com.example.myapplication'
 }
 
@@ -42,5 +45,5 @@ dependencies {
 
     //rxKotlin
     implementation("io.reactivex.rxjava3:rxkotlin:3.0.1")
-
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.9'
 }

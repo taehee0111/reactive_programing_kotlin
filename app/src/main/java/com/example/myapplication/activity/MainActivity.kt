@@ -1,37 +1,57 @@
 package com.example.myapplication.activity
 
-import android.database.Observable
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.text.TextUtils
 import android.util.Log
 import android.widget.Button
 import com.example.myapplication.R
-import com.example.myapplication.ReactiveCalculator
+import com.example.myapplication.databinding.ActivityMainBinding
+import com.example.myapplication.reactive.ReactiveCalculator
+import com.example.myapplication.utils.Utils
+import com.example.myapplication.utils.Utils.longRunningTsk
 import io.reactivex.rxjava3.kotlin.subscribeBy
 import io.reactivex.rxjava3.kotlin.toObservable
 import io.reactivex.rxjava3.subjects.PublishSubject
 import io.reactivex.rxjava3.subjects.Subject
-import org.reactivestreams.Subscriber
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlin.coroutines.CoroutineContext
 
 class MainActivity : AppCompatActivity() {
     private val tag: String = MainActivity::class.java.simpleName
-    private lateinit var btnTest: Button
+    lateinit var binding: ActivityMainBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-        btnTest = findViewById<Button>(R.id.btn_test)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         //test1()
         //test2()
-        test3()
+        //test3()
+        binding.btnTest.setOnClickListener {
+            test3()
+        }
+//        test4()
+
+    }
+
+    private fun test4() {
+        GlobalScope.launch { // launch a new coroutine in background and continue
+            Log.d(tag, "test4 start")
+            longRunningTsk()
+            Log.d(tag, "test4 end")
+        }
 
     }
 
     private fun test3() {
-        var reactiveCalculator = ReactiveCalculator(1, 2)
+        val reactiveCalculator = ReactiveCalculator(1, 2)
 
-        btnTest.setOnClickListener {
-            reactiveCalculator.modifyNumber(1,1)
+
+        binding.btnTest.setOnClickListener {
+            reactiveCalculator.inputText(binding.et1.text.toString(), binding.et2.text.toString())
         }
 
     }
@@ -39,7 +59,7 @@ class MainActivity : AppCompatActivity() {
     private fun test2() {
         val subject: Subject<Int> = PublishSubject.create()
 
-        btnTest.setOnClickListener {
+        binding.btnTest.setOnClickListener {
             subject.onNext(4)
             subject.onNext(9)
         }
