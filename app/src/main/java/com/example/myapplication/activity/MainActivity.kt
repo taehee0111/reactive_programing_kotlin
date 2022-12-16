@@ -2,25 +2,23 @@ package com.example.myapplication.activity
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.text.TextUtils
 import android.util.Log
-import android.widget.Button
-import com.example.myapplication.R
 import com.example.myapplication.databinding.ActivityMainBinding
 import com.example.myapplication.reactive.ReactiveCalculator
-import com.example.myapplication.utils.Utils
 import com.example.myapplication.utils.Utils.longRunningTsk
+import io.reactivex.rxjava3.core.Maybe
+import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.kotlin.subscribeBy
 import io.reactivex.rxjava3.kotlin.toObservable
 import io.reactivex.rxjava3.subjects.PublishSubject
 import io.reactivex.rxjava3.subjects.Subject
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlin.coroutines.CoroutineContext
+import kotlinx.coroutines.*
+import kotlin.coroutines.coroutineContext
 
 class MainActivity : AppCompatActivity() {
     private val tag: String = MainActivity::class.java.simpleName
-    lateinit var binding: ActivityMainBinding
+    private lateinit var binding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,11 +27,90 @@ class MainActivity : AppCompatActivity() {
 
         //test1()
         //test2()
-        //test3()
+        //test3Calculator()
+        //test4()
+        //test5()
+        //test6monad()
+        test7Observer()
+
         binding.btnTest.setOnClickListener {
-            test3()
         }
-//        test4()
+
+    }
+
+    private fun test7Observer() {
+        val observer: io.reactivex.rxjava3.core.Observer<Any> = object : io.reactivex.rxjava3.core.Observer<Any> {
+            override fun onSubscribe(d: Disposable) {
+                Log.d(tag,"onSubscribe")
+            }
+
+            override fun onNext(t: Any) {
+                Log.d(tag,"onNext")
+            }
+
+            override fun onError(e: Throwable) {
+                Log.d(tag,"onError")
+            }
+
+            override fun onComplete() {
+                Log.d(tag,"onComplete")
+            }
+        }
+
+        val observable: Observable<Any> = listOf("One",2,"Three",).toList().toObservable()
+        observable.subscribe(observer)
+
+        val observableOnList: Observable<List<Any>> = Observable.just(
+            listOf("One",2,"three","four"),
+            listOf("ListItems"),
+            listOf(1,2,3,4),
+        )
+        observableOnList.subscribe(observer)
+
+    }
+
+    private fun test6monad() {
+        val maybeValue: Maybe<Int> = Maybe.just(14)
+        //값이 존재시 onSuccess 호출
+        maybeValue.subscribeBy(
+            onSuccess = {
+                Log.d(tag, "onSuccess$it")
+            },
+            onError = {
+                Log.d(tag, "onError$it")
+            },
+            onComplete = {
+                Log.d(tag, "onComplete")
+            })
+        val maybeEmpty: Maybe<Int> = Maybe.empty()
+        //값이 비어있으면 onComplete 호출
+        maybeEmpty.subscribeBy(
+            onSuccess = {
+                Log.d(tag, "empty onSuccess$it")
+            },
+            onError = {
+                Log.d(tag, "empty onError$it")
+            },
+            onComplete = {
+                Log.d(tag, "empty onComplete")
+            })
+    }
+
+    private fun test5() {
+//        val fibonacciSeries = buildSequence{
+        val fibonacciSeries = sequence<Int> {
+            var a = 0
+            var b = 1
+            yield(a)
+            yield(b)
+            while (true) {
+                val c = a + b
+                yield(c)
+                a = b
+                b = c
+            }
+        }
+        Log.d(tag, fibonacciSeries.take(10).toList().toString())
 
     }
 
@@ -46,12 +123,16 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    private fun test3() {
+    private fun test3Calculator() {
         val reactiveCalculator = ReactiveCalculator(1, 2)
 
 
         binding.btnTest.setOnClickListener {
-            reactiveCalculator.inputText(binding.et1.text.toString(), binding.et2.text.toString())
+            CoroutineScope(Dispatchers.Default).launch {
+                reactiveCalculator.inputText(binding.et1.text.toString(), binding.et2.text.toString())
+
+            }
+
         }
 
     }
