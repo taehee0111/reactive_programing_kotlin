@@ -106,5 +106,9 @@ Observable<T>: 어떤 유형도 감지할 수 있다 array/list도 가능하다
 ### 옵저버블이 동작하는 방법 
 onNext onComplete onError 
 
-### Observable.create 메서드 이해 
-78page 예정
+### Observable.create 메서드 이해
+Observable.create 매서드로 옵저버블을 직접 생성할 수 있다.
+사용자가 지정한 데이터 구조를 사용하거나 내보내는 값을 제어할떄 유용하다.
+
+### Observable.from 메서드 이해
+80page 공부 예정

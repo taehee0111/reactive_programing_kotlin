@@ -8,12 +8,14 @@ import com.example.myapplication.reactive.ReactiveCalculator
 import com.example.myapplication.utils.Utils.longRunningTsk
 import io.reactivex.rxjava3.core.Maybe
 import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.core.Observer
 import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.kotlin.subscribeBy
 import io.reactivex.rxjava3.kotlin.toObservable
 import io.reactivex.rxjava3.subjects.PublishSubject
 import io.reactivex.rxjava3.subjects.Subject
 import kotlinx.coroutines.*
+import java.util.concurrent.Callable
 
 class MainActivity : AppCompatActivity() {
     private val tag: String = MainActivity::class.java.simpleName
@@ -30,12 +32,92 @@ class MainActivity : AppCompatActivity() {
         //test4()
         //test5()
         //test6monad()
+        //test7Observer()
+        //test8ObserverCreate()
 
         binding.btnTest.setOnClickListener {
-            test7Observer()
+            test9ObserverFrom()
         }
+        test9ObserverFrom()
 
     }
+
+
+    private fun test9ObserverFrom() {
+        val observer: Observer<String> = object : Observer<String> {
+            override fun onComplete() {
+                Log.d(tag, "onComplete")
+
+            }
+
+            override fun onNext(item: String) {
+                Log.d(tag, "onNExt:$item")
+            }
+
+            override fun onError(e: Throwable) {
+                Log.d(tag, "onError:${e.message}")
+
+            }
+
+            override fun onSubscribe(d: Disposable) {
+                Log.d(tag, "onSubscribe")
+
+            }
+        }
+
+        val list = listOf("String 1", "String 2", "String 3", "String 4")
+        val observableFromIterator = Observable.fromIterable(list)
+        observableFromIterator.subscribe(observer)
+
+        val callable = object : Callable<String> {
+            override fun call(): String {
+                return ""
+            }
+        }
+        val observableFromCallable: Observable<String> = Observable.fromCallable(callable)
+    }
+
+    private fun test8ObserverCreate() {
+        val observer: Observer<String> = object : Observer<String> {
+            override fun onComplete() {
+                Log.d(tag, "onComplete")
+
+            }
+
+            override fun onNext(item: String) {
+                Log.d(tag, "onNExt:$item")
+            }
+
+            override fun onError(e: Throwable) {
+                Log.d(tag, "onError:${e.message}")
+
+            }
+
+            override fun onSubscribe(d: Disposable) {
+                Log.d(tag, "onSubscribe")
+
+            }
+        }
+
+        val observable: Observable<String> = Observable.create<String> {
+            it.onNext("Emit 1")
+            it.onNext("Emit 2")
+            it.onNext("Emit 3")
+            it.onNext("Emit 4")
+            it.onComplete()
+        }
+        observable.subscribe(observer)
+
+        val observable2: Observable<String> = Observable.create<String> {
+            it.onNext("Emit 1")
+            it.onNext("Emit 2")
+            it.onNext("Emit 3")
+            it.onNext("Emit 4")
+            it.onError(Exception("My custom Exception"))
+        }
+
+        observable2.subscribe(observer)
+    }//test8ObserverCreate
 
     private fun test7Observer() {
         val observer: io.reactivex.rxjava3.core.Observer<Any> =
