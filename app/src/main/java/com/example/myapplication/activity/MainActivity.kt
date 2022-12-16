@@ -14,8 +14,7 @@ import io.reactivex.rxjava3.kotlin.subscribeBy
 import io.reactivex.rxjava3.kotlin.toObservable
 import io.reactivex.rxjava3.subjects.PublishSubject
 import io.reactivex.rxjava3.subjects.Subject
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import kotlin.coroutines.CoroutineContext
 
 class MainActivity : AppCompatActivity() {
@@ -30,26 +29,35 @@ class MainActivity : AppCompatActivity() {
         //test1()
         //test2()
         //test3()
+        //test4()
+
         binding.btnTest.setOnClickListener {
-            test3()
+            test5()
         }
-//        test4()
+
 
     }
 
+    private fun test5() {
+        val result = CoroutineScope(Dispatchers.Default).async {
+            1
+        }
+        runBlocking {
+            val num = result.await()
+            Log.d(tag, "num:$num")
+        }
+    }
+
     private fun test4() {
-        GlobalScope.launch { // launch a new coroutine in background and continue
+        CoroutineScope(Dispatchers.Default).launch { // launch a new coroutine in background and continue
             Log.d(tag, "test4 start")
             longRunningTsk()
             Log.d(tag, "test4 end")
         }
-
     }
 
     private fun test3() {
         val reactiveCalculator = ReactiveCalculator(1, 2)
-
-
         binding.btnTest.setOnClickListener {
             reactiveCalculator.inputText(binding.et1.text.toString(), binding.et2.text.toString())
         }

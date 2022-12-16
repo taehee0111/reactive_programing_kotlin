@@ -36,6 +36,12 @@ fun main(args: Array<String>){
 ##### ReactiveCalculator 클래스에 함수형 프로그래밍 적용
 55 page 진행 예정
 
+##### 코루틴 시작하기
+
+##### 시퀀스 생성하기
+async/await
+
+
 
 ###### 책이름
 Reactive Programming in Kotlin
