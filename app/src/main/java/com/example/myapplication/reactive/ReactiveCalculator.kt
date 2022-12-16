@@ -71,11 +71,11 @@ class ReactiveCalculator(num1: Int, num2: Int) {
         val isExistsNum1 = !TextUtils.isEmpty(num1Text)
         val isExistsNum2 = !TextUtils.isEmpty(num2Text)
         if( isExistsNum1){
-            var num1 = num1Text.toInt()
+            val num1 = num1Text.toInt()
             modifyNumber(a= num1)
         }
         if (isExistsNum2) {
-            var num2 = num2Text.toInt()
+            val num2 = num2Text.toInt()
             modifyNumber(b= num2)
         }
 
