@@ -111,4 +111,38 @@ Observable.create 매서드로 옵저버블을 직접 생성할 수 있다.
 사용자가 지정한 데이터 구조를 사용하거나 내보내는 값을 제어할떄 유용하다.
 
 ### Observable.from 메서드 이해
-80page 공부 예정
+Observable.from Iterator, Future Array 등 다양한 값을 Observable 로 생성할 수 있다.
+
+### Observable.toObservable 의 확장 함수 이해
+변수.toObservable
+내부적으로는 Observable.from 을 사용하고 있다.
+
+### Observable.just 메서드 이해
+Observable.Just: 팩토리 매서드
+넘겨진 인자만을 배출하는 옵저버블을 생성한다.
+Observable.just 에 단일 인자로 넘기면 전체 목록을 하나의 아이템으로 배출한다. 
+Iterable 내부의 각각 아이템을 Observable 로 생성하는 Observable.from 과는 다르다.
+ 리스트를 단일 아이템으로 취급한다.
+ just( 아이템1, 아이템2, 아이템3) -> 단일 아이템 3개가 나온다.
+
+### Observable 의 다른 팩토리 메서드
+observable.range(a,b) a~b 까지 onNext
+observable.empty(a,b) a~b 까지 next 없이 complete
+observable.interval() 0부터 지정된 숫자까지 (구독 취소하거나 완료될 때 까지 ) 
+observable.timer() 0부터 지정된 숫자까지 (지정된 시간이 경과한 후 한 번만 실행)
+
+### 구독자: Observer 인터페이스
+rxKotlin 1.0 Subscriber -> rxkotlin 2.0 Observer
+onNext: 아이템을 하나씩 넘겨주기 위해 옵저버블은 옵저버의 이 메서드를 호출한다.
+onComplete: onNext 를 통한 아이템 전달이 종료 되었을 때 호출된다.
+onError: 옵저버블에서 에러가 발생했을 때 옵저버에 정의된 로직이 있다 면 onError 을 호출하고 그렇지 않다면 예외를 발생한다.
+onSubscriber: Observable 이 새로운 Observer 를 구독할 때 호출한다.
+
+### 구독과 해지 
+Observable: 관찰 대상 
+Observer: 관찰자
+Subscribe: Observable 과 Observer 를 연결하는 매개체
+onSubscribe 는 disposable 인스턴스를 반환 Disposable 를 통해 주어진 신간에 배출을 멈출 수 있다.
+
+### 핫, 콜드 옵저버블 
+95page 공부 예정

@@ -16,10 +16,50 @@ import io.reactivex.rxjava3.subjects.PublishSubject
 import io.reactivex.rxjava3.subjects.Subject
 import kotlinx.coroutines.*
 import java.util.concurrent.Callable
+import java.util.concurrent.Future
+import java.util.concurrent.TimeUnit
 
 class MainActivity : AppCompatActivity() {
     private val tag: String = MainActivity::class.java.simpleName
     private lateinit var binding: ActivityMainBinding
+    val observerAny: Observer<Any> = object : Observer<Any> {
+        override fun onComplete() {
+            Log.d(tag, "onComplete ")
+
+        }
+
+        override fun onNext(item: Any) {
+            Log.d(tag, "onNext:$item")
+        }
+
+        override fun onError(e: Throwable) {
+            Log.d(tag, "onError:${e.message}")
+
+        }
+
+        override fun onSubscribe(d: Disposable) {
+            Log.d(tag, "onSubscribe")
+        }
+    }
+    val observerString: Observer<String> = object : Observer<String> {
+        override fun onComplete() {
+            Log.d(tag, "onComplete ")
+
+        }
+
+        override fun onNext(item: String) {
+            Log.d(tag, "onNext:$item")
+        }
+
+        override fun onError(e: Throwable) {
+            Log.d(tag, "onError:${e.message}")
+
+        }
+
+        override fun onSubscribe(d: Disposable) {
+            Log.d(tag, "onSubscribe")
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,22 +76,55 @@ class MainActivity : AppCompatActivity() {
         //test8ObserverCreate()
 
         binding.btnTest.setOnClickListener {
-            test9ObserverFrom()
+
         }
-        test9ObserverFrom()
+        test11observableJust()
 
     }
 
 
-    private fun test9ObserverFrom() {
+    private fun test11observableJust() {
+        Observable.just("A String").subscribe(observerAny)
+        Observable.just(54).subscribe(observerAny)
+        Observable.just(listOf("String1", "String2", "String3")).subscribe(observerAny)
+
+    }
+
+    private fun test10toObserver() {
         val observer: Observer<String> = object : Observer<String> {
             override fun onComplete() {
-                Log.d(tag, "onComplete")
+                Log.d(tag, "onComplete ")
 
             }
 
             override fun onNext(item: String) {
-                Log.d(tag, "onNExt:$item")
+                Log.d(tag, "onNext:$item")
+            }
+
+            override fun onError(e: Throwable) {
+                Log.d(tag, "onError:${e.message}")
+
+            }
+
+            override fun onSubscribe(d: Disposable) {
+                Log.d(tag, "onSubscribe")
+            }
+        }
+
+        val list: List<String> = listOf("String 1", "String 2", "String 3", "String 4")
+        val observable: Observable<String> = list.toObservable()
+        observable.subscribe(observer)
+    }
+
+    private fun test9ObserverFrom() {
+        val observer: Observer<String> = object : Observer<String> {
+            override fun onComplete() {
+                Log.d(tag, "onComplete ")
+
+            }
+
+            override fun onNext(item: String) {
+                Log.d(tag, "onNext:$item")
             }
 
             override fun onError(e: Throwable) {
@@ -71,10 +144,26 @@ class MainActivity : AppCompatActivity() {
 
         val callable = object : Callable<String> {
             override fun call(): String {
-                return ""
+                return "From Callable"
             }
         }
+
         val observableFromCallable: Observable<String> = Observable.fromCallable(callable)
+        observableFromCallable.subscribe(observer)
+
+        val future: Future<String> = object : Future<String> {
+            override fun cancel(mayInterruptIfRunning: Boolean): Boolean = false
+
+            override fun isCancelled(): Boolean = false
+
+            override fun isDone(): Boolean = true
+
+            override fun get(): String = "Hello From Future"
+
+            override fun get(timeout: Long, unit: TimeUnit?): String = "Hello From Future"
+        }
+        val observableFromFuture: Observable<String> = Observable.fromFuture(future)
+        observableFromFuture.subscribe(observer)
     }
 
     private fun test8ObserverCreate() {
@@ -85,7 +174,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onNext(item: String) {
-                Log.d(tag, "onNExt:$item")
+                Log.d(tag, "onNext:$item")
             }
 
             override fun onError(e: Throwable) {
