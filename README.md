@@ -146,3 +146,4 @@ onSubscribe 는 disposable 인스턴스를 반환 Disposable 를 통해 주어�
 
 ### 핫, 콜드 옵저버블 
 95page 공부 예정
+콜드 옵저버블: 동일한 옵저버블을 연속해서 subscribe 가 가능하다.
