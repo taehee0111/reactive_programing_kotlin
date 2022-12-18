@@ -12,6 +12,7 @@ import io.reactivex.rxjava3.core.Observer
 import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.kotlin.subscribeBy
 import io.reactivex.rxjava3.kotlin.toObservable
+import io.reactivex.rxjava3.subjects.AsyncSubject
 import io.reactivex.rxjava3.subjects.PublishSubject
 import io.reactivex.rxjava3.subjects.Subject
 import kotlinx.coroutines.*
@@ -74,12 +75,92 @@ class MainActivity : AppCompatActivity() {
         //test6monad()
         //test7Observer()
         //test8ObserverCreate()
+        //testHotObservable()
+        //testHotObservable2()
+        //testHotObservable3()
 
         binding.btnTest.setOnClickListener {
-
         }
-        test11observableJust()
 
+        testAsyncSubject()
+
+    }
+
+    private fun testAsyncSubject() {
+//        val observable = Observable.just(1, 2, 3, 4)
+//        observable.subscribe(subject)
+        val subject = AsyncSubject.create<Int>()
+        subject.onNext(1)
+        subject.onNext(2)
+        subject.onNext(3)
+        subject.onNext(4)
+        subject.subscribe(
+            {
+                Log.d(tag, "onNext: $it")
+
+            },
+            {
+                Log.d(tag, "error: $it")
+
+            }, {
+                Log.d(tag, "complete: ")
+            }
+        )
+        subject.onNext(5)
+        subject.subscribe(
+            {
+                Log.d(tag, "onNext: $it")
+
+            },
+            {
+                Log.d(tag, "error: $it")
+
+            }, {
+                Log.d(tag, "complete: ")
+            }
+        )
+        subject.onComplete()
+    }
+
+    //subject -> 콜드 옵저버블을 핫 옵저버블 같이 행동 시킨다.
+    private fun testHotObservable3() {
+        CoroutineScope(Dispatchers.Default).launch() {
+            val observable = Observable.interval(100, TimeUnit.MILLISECONDS)
+            val subject = PublishSubject.create<Long>()
+            observable.subscribe(subject)
+            subject.subscribe {
+                Log.d(tag, "Received1: $it")
+            }
+            delay(1100)
+            subject.subscribe {
+                Log.d(tag, "Received2: $it")
+            }
+            delay(1100)
+            subject.onComplete()
+        }
+    }
+
+    private fun testHotObservable2() {
+        CoroutineScope(Dispatchers.Default).launch() {
+            val connectableObservable = Observable.interval(100, TimeUnit.MILLISECONDS).publish()
+
+            connectableObservable.subscribe { Log.d(tag, "Subscription 1: $it") }
+            connectableObservable.subscribe { Log.d(tag, "Subscription 2: $it") }
+            connectableObservable.connect()
+            delay(500)
+
+            connectableObservable.subscribe { Log.d(tag, "Subscription 3: $it") }
+            delay(500)
+        }
+    }
+
+    private fun testHotObservable() {
+        val connectableObservable = listOf("String 1", "String 2", "String 3", "String 4", "String 5").toObservable().publish()
+        connectableObservable.subscribe { Log.d(tag, "Subscription $it") }
+        connectableObservable.map(String::reversed).subscribe() { Log.d(tag, "Subscription2 $it") }
+        connectableObservable.connect()
+        connectableObservable.subscribe { Log.d(tag, "Subscription3 $it") }
+        connectableObservable.connect()// 배출 X
     }
 
 

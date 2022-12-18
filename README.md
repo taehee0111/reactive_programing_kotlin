@@ -15,6 +15,7 @@ RxKotlin을 사용한 리액티브 프로그래밍
 전체를 위한 하나, 모든 작업에 대한 동일한 API
 함수형 접근 
 유지 보수 가능하고 테스트 가능한 코드
+
 ### 리액티브 선언
 ### RX 코틀린 시작하기
 ### 매커니즘
@@ -144,6 +145,38 @@ Observer: 관찰자
 Subscribe: Observable 과 Observer 를 연결하는 매개체
 onSubscribe 는 disposable 인스턴스를 반환 Disposable 를 통해 주어진 신간에 배출을 멈출 수 있다.
 
-### 핫, 콜드 옵저버블 
-95page 공부 예정
-콜드 옵저버블: 동일한 옵저버블을 연속해서 subscribe 가 가능하다.
+### 핫, 콜드 옵저버블
+###### 콜드 옵저버블: 동일한 옵저버블을 연속해서 subscribe 가 가능하다. 
+고정적인 데이터를 여러곳에서 구독하기 때문에 데이터 관력 작업을 할 때, 예를 들면 SQLite 나 RoomDB 작업하는 동안 콜드 옵저버블에 많이 의존하게 된다.
+###### 핫 옵저버블: 구독 요청할 필요없이 지속적으로 데이터를 배출한다.
+ConnectableObservable: 콜드 옵저버블, 옵저버블을 핫 옵저버블로 변경할 수 있다.
+Observable.publish(): 콜드 옵저버블로 핫 옵저버블로 변환 
+Observable.connect(): 이전에 subscribe 한 메소드 들이 실행된다.
+뒤 늦게 connect() 를 호출하면 남아있는 데이터부터 subscribe 를 하게된다.
+######### Subject
+Hot Observable 을 구현하기 좋은 방법중 하나 
+Observer 과 Observable 의 조합 
+- 옵저버블이 가져야하는 모든 연산자를 가지고 있다.
+- 옵저버와 마찬가지로 배출된 모든 값에 접근할 수 있다.
+- Subject 가 완료 오류 구독해지 된 후 재사용 할 수가 없다
+- onNext 를 사용해 값을 Subject(Observer) 측에 전달하면 Observable 에서 접근 가능하게 된다.
+subject -> 콜드 옵저버블을 핫 옵저버블 같이 행동 시킨다.
+
+### 다양한 구독자
+AsyncSubject: 마지막 값만 배출한다,  인터리티브하지 않다. onComplete() 를 통해 배출
+PublishSubject: 구독 시점에 받아지는 모든 값을 배출한다.
+BehaviorSubject: AsyncSubject 와 PublishSubject 의 조합 구독전의 마지막 아이템과 구독 후 모든 아이템을 배출한다.
+ReplaySubject: 모든 아이템을 옵저버의 구독 시점과 상관없이 다시 전달한다. 콜드 옵저버블과 유사하다
+
+### 3장 백프레셔와 플로어블 소개 
+옵저버블 처리를 위해 옵저버는 소비할 아이템을 배출한다.
+아이템 처리량보다 소비량이 더 빠를수가 있다. 이 문제에 대해 해결방법을 알아보자 
+ 백프레셔 이해하기
+ 플로어블 및 가입자
+ Flowable.create() 로 플로어블 생성하기
+ 옵저버블과 플로어블 동시에 사용하기
+ 백프레셔 연산자
+ Flowable.generate()연산자
+
+###### 백프레셔의 이해 
+116page 공부 예정
