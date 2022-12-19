@@ -6,17 +6,21 @@ import android.util.Log
 import com.example.myapplication.databinding.ActivityMainBinding
 import com.example.myapplication.reactive.ReactiveCalculator
 import com.example.myapplication.utils.Utils.longRunningTsk
+import io.reactivex.rxjava3.core.Flowable
 import io.reactivex.rxjava3.core.Maybe
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.core.Observer
 import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.kotlin.subscribeBy
 import io.reactivex.rxjava3.kotlin.toObservable
+import io.reactivex.rxjava3.schedulers.Schedulers
 import io.reactivex.rxjava3.subjects.AsyncSubject
 import io.reactivex.rxjava3.subjects.PublishSubject
 import io.reactivex.rxjava3.subjects.Subject
 import kotlinx.coroutines.*
 import java.util.concurrent.Callable
+import java.util.concurrent.Flow.Subscriber
+import java.util.concurrent.Flow.Subscription
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 
@@ -78,13 +82,91 @@ class MainActivity : AppCompatActivity() {
         //testHotObservable()
         //testHotObservable2()
         //testHotObservable3()
+        //testAsyncSubject()
+        //testObservable_beforeFlowable()
+        //testFlowable()
 
         binding.btnTest.setOnClickListener {
+            testFlowable_SubscribeInstance()
+        }
+    }
+
+    //플로어블과 구독자 예정
+    private fun testFlowable_SubscribeInstance() {
+        data class MyItem(val id: Int) {
+            init {
+                Log.d(tag, "$id")
+            }
         }
 
-        testAsyncSubject()
+        Flowable.range(1, 15)
+            .map { MyItem(it) }
+            .observeOn(Schedulers.io())
+            .subscribe(object : org.reactivestreams.Subscriber<MyItem> {
+                lateinit var subscription: Subscription
+                override fun onSubscribe(s: org.reactivestreams.Subscription?) {
+                    TODO("Not yet implemented")
+                }
+
+                override fun onNext(item: MyItem?) {
+                    TODO("Not yet implemented")
+                }
+
+                override fun onError(throwable: Throwable?) {
+                    TODO("Not yet implemented")
+                }
+
+                override fun onComplete() {
+                    TODO("Not yet implemented")
+                }
+
+
+            })
+        runBlocking { delay(60000) } //컨슈머가 모든 아이템을 처리하길 기다리는 코드
 
     }
+
+    //Flowable 번갈아가면서 실행한다.
+    private fun testFlowable() {
+        class MyItem(val id: Int) {
+            init {
+                Log.d(tag, "$id")
+            }
+        }
+        Flowable.range(1, 1000)
+            .map { MyItem(it) }
+            .observeOn(Schedulers.computation()) //스레드 설정
+            .subscribe({
+                runBlocking { delay(50) } //컨슈머가 모든 아이템을 처리하길 기다리는 코드
+                Log.d(tag, "received$it")
+            }, {
+                Log.d(tag, "")
+            })
+        runBlocking { delay(60000) } //컨슈머가 모든 아이템을 처리하길 기다리는 코드
+
+    }
+
+    //하나의 아이템을 처리하는 동안 많은 아이템을 생성한다 -> OutofMemory
+    private fun testObservable_beforeFlowable() {
+        data class MyItem(val id: Int) {
+            init {
+                Log.d(tag, "$id")
+            }
+        }
+        Observable.range(1, 1000)// 1~1000사이의 숫자를 배출하는 코드
+            .map { MyItem(it) } //Int 에서 MyItem 클래스로 변환
+            .observeOn(Schedulers.computation()) //스레드 설정
+            .subscribe({
+                Log.d(tag, "received $it")
+                runBlocking { delay(50) }
+            }, {
+                it.printStackTrace()
+            })
+        runBlocking { delay(60000) } //컨슈머가 모든 아이템을 처리하길 기다리는 코드
+        Log.d(tag, "end")
+
+    }
+
 
     private fun testAsyncSubject() {
 //        val observable = Observable.just(1, 2, 3, 4)
@@ -155,7 +237,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun testHotObservable() {
-        val connectableObservable = listOf("String 1", "String 2", "String 3", "String 4", "String 5").toObservable().publish()
+        val connectableObservable =
+            listOf("String 1", "String 2", "String 3", "String 4", "String 5").toObservable()
+                .publish()
         connectableObservable.subscribe { Log.d(tag, "Subscription $it") }
         connectableObservable.map(String::reversed).subscribe() { Log.d(tag, "Subscription2 $it") }
         connectableObservable.connect()
