@@ -85,13 +85,17 @@ class MainActivity : AppCompatActivity() {
         //testAsyncSubject()
         //testObservable_beforeFlowable()
         //testFlowable()
+        //testFlowable_SubscribeInstance()
 
         binding.btnTest.setOnClickListener {
             testFlowable_SubscribeInstance()
         }
     }
 
-    //플로어블과 구독자 예정
+    //
+
+    //플로어블과 구독자 126 page
+    // subscribe 의 onSubscription 의 subscription 은 요청 개수를 정할 수 있다. => 백프레셔 역활
     private fun testFlowable_SubscribeInstance() {
         data class MyItem(val id: Int) {
             init {
@@ -103,27 +107,26 @@ class MainActivity : AppCompatActivity() {
             .map { MyItem(it) }
             .observeOn(Schedulers.io())
             .subscribe(object : org.reactivestreams.Subscriber<MyItem> {
-                lateinit var subscription: Subscription
-                override fun onSubscribe(s: org.reactivestreams.Subscription?) {
-                    TODO("Not yet implemented")
+                lateinit var subscription: org.reactivestreams.Subscription
+                override fun onSubscribe(subscription: org.reactivestreams.Subscription) {//구독 초기화
+                    this.subscription = subscription
+                    subscription.request(5) //5개까지 요청
                 }
-
-                override fun onNext(item: MyItem?) {
-                    TODO("Not yet implemented")
+                override fun onNext(item: MyItem) {
+                    Log.d(tag, "${item.id}")
+                    if (item.id == 5) {
+                        Log.d(tag, "request More Two")
+                        subscription.request(2) //2개 더 요청
+                    }
                 }
-
                 override fun onError(throwable: Throwable?) {
-                    TODO("Not yet implemented")
+                    Log.d(tag, "onError")
                 }
-
                 override fun onComplete() {
-                    TODO("Not yet implemented")
+                    Log.d(tag, "onComplete")
                 }
-
-
             })
         runBlocking { delay(60000) } //컨슈머가 모든 아이템을 처리하길 기다리는 코드
-
     }
 
     //Flowable 번갈아가면서 실행한다.

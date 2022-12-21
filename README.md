@@ -205,5 +205,28 @@ Observable 의 보완 Flowable: 처리와 배출을 일정량 번갈아가면서
 배출량 지정, 디폴트: 무제한
 수신량 지정, 디폴트: 0
 
+플로어블과 구독자 126 page
+subscribe 의 onSubscription 의 subscription 은 요청 개수를 정할 수 있다. => 백프레셔 역활
+
+옵저버블도 백프레셔 기능이 지원되는것 처럼 만들 수 있다.
+
+BackPressureStrategy 전략
+Subscriber 에 추가할 수 있다.
+BackpressureStrategy.Missing: 다운 스트림이 스스로 오버플로우 처리를 해야한다. onBackpressureXXX
+BackpressureStrategy.Error: 백프레셔 전략을 사용하지 않는다. 다운 스트림이 소스를 따라잡을 수 없을경우 MissingBackpressureException 예외 발생
+BackpressureStrategy.Buffer: 제한이 없는 버퍼 버퍼를 넘어설경우 OutOfMemoryError
+BackpressureStrategy.Drop: 다운 스트림이 바쁘고 소비속도를 계속 유지 할 수 없을 때 모든 배출량을 무시한다.
+BackpressureStrategy.LATEST: 책 내용 난해
+
+###### 옵저버블로 플로어블 만들기 134 page
+Observer.toFlowable 로 옵저버블을 플로어블로 변경하여 백프레셔 기능을 추가할 수 있다.
+위 전략들에 대해 테스트가 가능 
+
+
+###### 원천에서 백프레셔를 지원하는 플로어블 생성 143 page 공부 예정
+위 내용들은 백프레셔가 처리불가능한것들은 무시하는 경우로 부적절하다.
+처음부터 백프레셔를 지원하는 방법으로 보완한다.
+
+
 
 
