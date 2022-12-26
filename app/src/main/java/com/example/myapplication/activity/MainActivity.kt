@@ -19,50 +19,49 @@ import io.reactivex.rxjava3.subjects.PublishSubject
 import io.reactivex.rxjava3.subjects.Subject
 import kotlinx.coroutines.*
 import java.util.concurrent.Callable
-import java.util.concurrent.Flow.Subscriber
-import java.util.concurrent.Flow.Subscription
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
+import java.util.function.BiFunction
 
 class MainActivity : AppCompatActivity() {
-    private val tag: String = MainActivity::class.java.simpleName
+    private val TAG: String = MainActivity::class.java.simpleName
     private lateinit var binding: ActivityMainBinding
     val observerAny: Observer<Any> = object : Observer<Any> {
         override fun onComplete() {
-            Log.d(tag, "onComplete ")
+            Log.d(TAG, "onComplete ")
 
         }
 
         override fun onNext(item: Any) {
-            Log.d(tag, "onNext:$item")
+            Log.d(TAG, "onNext:$item")
         }
 
         override fun onError(e: Throwable) {
-            Log.d(tag, "onError:${e.message}")
+            Log.d(TAG, "onError:${e.message}")
 
         }
 
         override fun onSubscribe(d: Disposable) {
-            Log.d(tag, "onSubscribe")
+            Log.d(TAG, "onSubscribe")
         }
     }
     val observerString: Observer<String> = object : Observer<String> {
         override fun onComplete() {
-            Log.d(tag, "onComplete ")
+            Log.d(TAG, "onComplete ")
 
         }
 
         override fun onNext(item: String) {
-            Log.d(tag, "onNext:$item")
+            Log.d(TAG, "onNext:$item")
         }
 
         override fun onError(e: Throwable) {
-            Log.d(tag, "onError:${e.message}")
+            Log.d(TAG, "onError:${e.message}")
 
         }
 
         override fun onSubscribe(d: Disposable) {
-            Log.d(tag, "onSubscribe")
+            Log.d(TAG, "onSubscribe")
         }
     }
 
@@ -86,20 +85,50 @@ class MainActivity : AppCompatActivity() {
         //testObservable_beforeFlowable()
         //testFlowable()
         //testFlowable_SubscribeInstance()
-
+        //testError()
+        Log.d(TAG, "onCreate: ")
         binding.btnTest.setOnClickListener {
-            testFlowable_SubscribeInstance()
+            testZip()
         }
+
     }
 
-    //
+    private fun testZip() {
+        val observable1 = Observable.range(1, 10)
+        val observable2 = Observable.range(11, 10)
+        Observable.zip(observable1, observable2,
+            io.reactivex.rxjava3.functions.BiFunction<Int, Int, Int> { emission1, emission2 ->
+                emission1 + emission2
+            })
+    }
+
+    private fun testError() {
+        fun Any.toIntOrError(): Int = toString().toInt()
+
+        Observable.just<Any>(1, 2, 3, 4, "isError", 5, 6, 7, 8)
+            .map { it.toIntOrError() }
+            .subscribeBy(
+                onNext = {
+
+                },
+                onError = {
+
+                }
+            )
+
+//        listOf<Any>(1, 2, 3, 4, "isError", 5, 6, 7, 8)
+//            .map { it.toIntOrError() }
+
+    }
+
+//
 
     //플로어블과 구독자 126 page
-    // subscribe 의 onSubscription 의 subscription 은 요청 개수를 정할 수 있다. => 백프레셔 역활
+// subscribe 의 onSubscription 의 subscription 은 요청 개수를 정할 수 있다. => 백프레셔 역활
     private fun testFlowable_SubscribeInstance() {
         data class MyItem(val id: Int) {
             init {
-                Log.d(tag, "$id")
+                Log.d(TAG, "$id")
             }
         }
 
@@ -111,19 +140,23 @@ class MainActivity : AppCompatActivity() {
                 override fun onSubscribe(subscription: org.reactivestreams.Subscription) {//구독 초기화
                     this.subscription = subscription
                     subscription.request(5) //5개까지 요청
+
                 }
+
                 override fun onNext(item: MyItem) {
-                    Log.d(tag, "${item.id}")
+                    Log.d(TAG, "${item.id}")
                     if (item.id == 5) {
-                        Log.d(tag, "request More Two")
+                        Log.d(TAG, "request More Two")
                         subscription.request(2) //2개 더 요청
                     }
                 }
+
                 override fun onError(throwable: Throwable?) {
-                    Log.d(tag, "onError")
+                    Log.d(TAG, "onError")
                 }
+
                 override fun onComplete() {
-                    Log.d(tag, "onComplete")
+                    Log.d(TAG, "onComplete")
                 }
             })
         runBlocking { delay(60000) } //컨슈머가 모든 아이템을 처리하길 기다리는 코드
@@ -133,7 +166,7 @@ class MainActivity : AppCompatActivity() {
     private fun testFlowable() {
         class MyItem(val id: Int) {
             init {
-                Log.d(tag, "$id")
+                Log.d(TAG, "$id")
             }
         }
         Flowable.range(1, 1000)
@@ -141,9 +174,9 @@ class MainActivity : AppCompatActivity() {
             .observeOn(Schedulers.computation()) //스레드 설정
             .subscribe({
                 runBlocking { delay(50) } //컨슈머가 모든 아이템을 처리하길 기다리는 코드
-                Log.d(tag, "received$it")
+                Log.d(TAG, "received$it")
             }, {
-                Log.d(tag, "")
+                Log.d(TAG, "")
             })
         runBlocking { delay(60000) } //컨슈머가 모든 아이템을 처리하길 기다리는 코드
 
@@ -153,20 +186,20 @@ class MainActivity : AppCompatActivity() {
     private fun testObservable_beforeFlowable() {
         data class MyItem(val id: Int) {
             init {
-                Log.d(tag, "$id")
+                Log.d(TAG, "$id")
             }
         }
         Observable.range(1, 1000)// 1~1000사이의 숫자를 배출하는 코드
             .map { MyItem(it) } //Int 에서 MyItem 클래스로 변환
             .observeOn(Schedulers.computation()) //스레드 설정
             .subscribe({
-                Log.d(tag, "received $it")
+                Log.d(TAG, "received $it")
                 runBlocking { delay(50) }
             }, {
                 it.printStackTrace()
             })
         runBlocking { delay(60000) } //컨슈머가 모든 아이템을 처리하길 기다리는 코드
-        Log.d(tag, "end")
+        Log.d(TAG, "end")
 
     }
 
@@ -181,27 +214,27 @@ class MainActivity : AppCompatActivity() {
         subject.onNext(4)
         subject.subscribe(
             {
-                Log.d(tag, "onNext: $it")
+                Log.d(TAG, "onNext: $it")
 
             },
             {
-                Log.d(tag, "error: $it")
+                Log.d(TAG, "error: $it")
 
             }, {
-                Log.d(tag, "complete: ")
+                Log.d(TAG, "complete: ")
             }
         )
         subject.onNext(5)
         subject.subscribe(
             {
-                Log.d(tag, "onNext: $it")
+                Log.d(TAG, "onNext: $it")
 
             },
             {
-                Log.d(tag, "error: $it")
+                Log.d(TAG, "error: $it")
 
             }, {
-                Log.d(tag, "complete: ")
+                Log.d(TAG, "complete: ")
             }
         )
         subject.onComplete()
@@ -214,11 +247,11 @@ class MainActivity : AppCompatActivity() {
             val subject = PublishSubject.create<Long>()
             observable.subscribe(subject)
             subject.subscribe {
-                Log.d(tag, "Received1: $it")
+                Log.d(TAG, "Received1: $it")
             }
             delay(1100)
             subject.subscribe {
-                Log.d(tag, "Received2: $it")
+                Log.d(TAG, "Received2: $it")
             }
             delay(1100)
             subject.onComplete()
@@ -229,12 +262,12 @@ class MainActivity : AppCompatActivity() {
         CoroutineScope(Dispatchers.Default).launch() {
             val connectableObservable = Observable.interval(100, TimeUnit.MILLISECONDS).publish()
 
-            connectableObservable.subscribe { Log.d(tag, "Subscription 1: $it") }
-            connectableObservable.subscribe { Log.d(tag, "Subscription 2: $it") }
+            connectableObservable.subscribe { Log.d(TAG, "Subscription 1: $it") }
+            connectableObservable.subscribe { Log.d(TAG, "Subscription 2: $it") }
             connectableObservable.connect()
             delay(500)
 
-            connectableObservable.subscribe { Log.d(tag, "Subscription 3: $it") }
+            connectableObservable.subscribe { Log.d(TAG, "Subscription 3: $it") }
             delay(500)
         }
     }
@@ -243,10 +276,10 @@ class MainActivity : AppCompatActivity() {
         val connectableObservable =
             listOf("String 1", "String 2", "String 3", "String 4", "String 5").toObservable()
                 .publish()
-        connectableObservable.subscribe { Log.d(tag, "Subscription $it") }
-        connectableObservable.map(String::reversed).subscribe() { Log.d(tag, "Subscription2 $it") }
+        connectableObservable.subscribe { Log.d(TAG, "Subscription $it") }
+        connectableObservable.map(String::reversed).subscribe() { Log.d(TAG, "Subscription2 $it") }
         connectableObservable.connect()
-        connectableObservable.subscribe { Log.d(tag, "Subscription3 $it") }
+        connectableObservable.subscribe { Log.d(TAG, "Subscription3 $it") }
         connectableObservable.connect()// 배출 X
     }
 
@@ -261,21 +294,21 @@ class MainActivity : AppCompatActivity() {
     private fun test10toObserver() {
         val observer: Observer<String> = object : Observer<String> {
             override fun onComplete() {
-                Log.d(tag, "onComplete ")
+                Log.d(TAG, "onComplete ")
 
             }
 
             override fun onNext(item: String) {
-                Log.d(tag, "onNext:$item")
+                Log.d(TAG, "onNext:$item")
             }
 
             override fun onError(e: Throwable) {
-                Log.d(tag, "onError:${e.message}")
+                Log.d(TAG, "onError:${e.message}")
 
             }
 
             override fun onSubscribe(d: Disposable) {
-                Log.d(tag, "onSubscribe")
+                Log.d(TAG, "onSubscribe")
             }
         }
 
@@ -287,21 +320,21 @@ class MainActivity : AppCompatActivity() {
     private fun test9ObserverFrom() {
         val observer: Observer<String> = object : Observer<String> {
             override fun onComplete() {
-                Log.d(tag, "onComplete ")
+                Log.d(TAG, "onComplete ")
 
             }
 
             override fun onNext(item: String) {
-                Log.d(tag, "onNext:$item")
+                Log.d(TAG, "onNext:$item")
             }
 
             override fun onError(e: Throwable) {
-                Log.d(tag, "onError:${e.message}")
+                Log.d(TAG, "onError:${e.message}")
 
             }
 
             override fun onSubscribe(d: Disposable) {
-                Log.d(tag, "onSubscribe")
+                Log.d(TAG, "onSubscribe")
 
             }
         }
@@ -337,21 +370,21 @@ class MainActivity : AppCompatActivity() {
     private fun test8ObserverCreate() {
         val observer: Observer<String> = object : Observer<String> {
             override fun onComplete() {
-                Log.d(tag, "onComplete")
+                Log.d(TAG, "onComplete")
 
             }
 
             override fun onNext(item: String) {
-                Log.d(tag, "onNext:$item")
+                Log.d(TAG, "onNext:$item")
             }
 
             override fun onError(e: Throwable) {
-                Log.d(tag, "onError:${e.message}")
+                Log.d(TAG, "onError:${e.message}")
 
             }
 
             override fun onSubscribe(d: Disposable) {
-                Log.d(tag, "onSubscribe")
+                Log.d(TAG, "onSubscribe")
 
             }
         }
@@ -380,19 +413,19 @@ class MainActivity : AppCompatActivity() {
         val observer: io.reactivex.rxjava3.core.Observer<Any> =
             object : io.reactivex.rxjava3.core.Observer<Any> {
                 override fun onSubscribe(d: Disposable) {
-                    Log.d(tag, "onSubscribe")
+                    Log.d(TAG, "onSubscribe")
                 }
 
                 override fun onNext(t: Any) {
-                    Log.d(tag, "onNext")
+                    Log.d(TAG, "onNext")
                 }
 
                 override fun onError(e: Throwable) {
-                    Log.d(tag, "onError")
+                    Log.d(TAG, "onError")
                 }
 
                 override fun onComplete() {
-                    Log.d(tag, "onComplete")
+                    Log.d(TAG, "onComplete")
                 }
             }
 
@@ -413,25 +446,25 @@ class MainActivity : AppCompatActivity() {
         //값이 존재시 onSuccess 호출
         maybeValue.subscribeBy(
             onSuccess = {
-                Log.d(tag, "onSuccess$it")
+                Log.d(TAG, "onSuccess$it")
             },
             onError = {
-                Log.d(tag, "onError$it")
+                Log.d(TAG, "onError$it")
             },
             onComplete = {
-                Log.d(tag, "onComplete")
+                Log.d(TAG, "onComplete")
             })
         val maybeEmpty: Maybe<Int> = Maybe.empty()
         //값이 비어있으면 onComplete 호출
         maybeEmpty.subscribeBy(
             onSuccess = {
-                Log.d(tag, "empty onSuccess$it")
+                Log.d(TAG, "empty onSuccess$it")
             },
             onError = {
-                Log.d(tag, "empty onError$it")
+                Log.d(TAG, "empty onError$it")
             },
             onComplete = {
-                Log.d(tag, "empty onComplete")
+                Log.d(TAG, "empty onComplete")
             })
     }
 
@@ -448,16 +481,16 @@ class MainActivity : AppCompatActivity() {
                 b = c
             }
         }
-        Log.d(tag, fibonacciSeries.take(10).toList().toString())
+        Log.d(TAG, fibonacciSeries.take(10).toList().toString())
 
     }
 
 
     private fun test4() {
         CoroutineScope(Dispatchers.Default).launch { // launch a new coroutine in background and continue
-            Log.d(tag, "test4 start")
+            Log.d(TAG, "test4 start")
             longRunningTsk()
-            Log.d(tag, "test4 end")
+            Log.d(TAG, "test4 end")
         }
     }
 
@@ -487,7 +520,7 @@ class MainActivity : AppCompatActivity() {
 
         //var list1 = listOf(1, 2, 4, 6, 10)
         subject.map { isEven(it) }.subscribe {
-            Log.d(tag, it.toString())
+            Log.d(TAG, it.toString())
         }
 
 
